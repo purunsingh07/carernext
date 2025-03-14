@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server"
+import { generateAIInsights } from "./dashboard";
 
 export async function updateUser(data){
  const {userId} = await auth();
@@ -29,19 +30,14 @@ export async function updateUser(data){
 
     //dosn,t,create later with ai
       if(!industryInsight){
-        industryInsight=await tx.industryInsight.create({
-            data:{
-                industry: data.industry,
-                salaryRanges:[],
-                growthRate:0,
-                demandLevel:"MEDIUM",
-                topSkills:[],
-                marketOutlook:"NEUTRAL",
-                keyTrends:[],
-                recommendedSkills:[],
-                nextUpdate:new Date(Date.now()+7*24*60*60*1000),
+        const insights = await generateAIInsights(data.industry);
 
-            },
+        industryInsight= await db.industryInsight.create({
+            data:{
+                industry:data.industry,
+                ...insights,
+                nextUpdate:new Date(Date.now()+7*24*60*60*1000)
+            }
         });
       }
     //update the user
