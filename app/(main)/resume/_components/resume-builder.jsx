@@ -23,7 +23,7 @@ import useFetch from "@/hooks/use-fetch";
 import { useUser } from "@clerk/nextjs";
 import { entriesToMarkdown } from "@/app/lib/helper";
 import { resumeSchema } from "@/app/lib/schema";
-import html2pdf from "html2pdf.js";
+import { html2pdf } from "html2pdf.js";
 
 
 export default function ResumeBuilder({ initialContent }) {
@@ -112,26 +112,36 @@ export default function ResumeBuilder({ initialContent }) {
   };
 
   const [isGenerating, setIsGenerating] = useState(false);
-
   const generatePDF = async () => {
     setIsGenerating(true);
     try {
-      const element = document.getElementById("resume-pdf");
-      const opt = {
-        margin: [15, 15],
-        filename: "resume.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
-
-      await html2pdf().set(opt).from(element).save();
+      if (typeof window !== "undefined") {
+        const html2pdf = (await import("html2pdf.js")).default;
+        const element = document.getElementById("resume-pdf");
+  
+        const opt = {
+          margin: [15, 15],
+          filename: "resume.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            backgroundColor: "#ffffff", // ✅ Forces a white background
+            useCORS: true, // ✅ Helps with external images
+          },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        };
+  
+        await html2pdf().set(opt).from(element).save();
+      }
     } catch (error) {
       console.error("PDF generation error:", error);
     } finally {
       setIsGenerating(false);
     }
   };
+  
+  
+
 
   const onSubmit = async (data) => {
     try {
