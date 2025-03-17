@@ -4,6 +4,7 @@ import PerformanceChart from "./_components/performance-charts";
 import QuizList from "./_components/quiz-list";
 
 export default async function InterviewPrepPage() {
+
   const assessments = await getAssessments();
 
   return (
